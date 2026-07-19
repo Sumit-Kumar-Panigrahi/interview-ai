@@ -1,0 +1,19 @@
+# Local env files
+.env
+Backend/.env
+Frontend/.env
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build artifacts
+dist/
+build/
+out/
+.next/
+
+# Logs and system files
+*.log
+.DS_Store
+Thumbs.db

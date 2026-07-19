@@ -3,9 +3,13 @@ const {GoogleGenAI} = require("@google/genai")
 const {z} = require("zod")
 const {zodToJsonSchema} = require("zod-to-json-schema")
 
-const ai = new GoogleGenAI({
-    apiKey: (process.env.GOOGLE_GENAI_API_KEY || "").trim()
-})
+const rawKey = process.env.GOOGLE_GENAI_API_KEY || ""
+const apiKey = rawKey.trim()
+
+// Debug: log key info on startup so we can verify in Render logs
+console.log(`[AI Service] API Key length: ${apiKey.length}, starts with: "${apiKey.substring(0, 6)}"`)
+
+const ai = new GoogleGenAI({ apiKey })
 
 const interviewReportSchema = z.object({
 
