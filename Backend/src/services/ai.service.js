@@ -184,26 +184,20 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 async function generatePdfFromHtml(htmlContent) {
-    let browser
+    const puppeteer = require("puppeteer")
 
-    if (process.env.NODE_ENV === "production") {
-        // Use @sparticuz/chromium on Render (cloud/Linux servers)
-        const chromium = require("@sparticuz/chromium")
-        const puppeteerCore = require("puppeteer-core")
-
-        browser = await puppeteerCore.launch({
-            args: chromium.args,
-            executablePath: await chromium.executablePath(),
-            headless: chromium.headless,
-        })
-    } else {
-        // Use regular puppeteer locally
-        const puppeteer = require("puppeteer")
-        browser = await puppeteer.launch({
-            args: ["--no-sandbox", "--disable-setuid-sandbox"],
-            headless: true
-        })
-    }
+    const browser = await puppeteer.launch({
+        args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--no-first-run",
+            "--no-zygote",
+            "--single-process"
+        ],
+        headless: true
+    })
 
     const page = await browser.newPage()
     await page.setContent(htmlContent, { waitUntil: "networkidle0" })
