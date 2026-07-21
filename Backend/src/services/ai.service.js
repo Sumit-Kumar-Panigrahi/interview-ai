@@ -128,7 +128,6 @@ module.exports = {generateInterviewReport, generateResumePdf} */
 const { GoogleGenAI } = require("@google/genai")
 const { z } = require("zod")
 const { zodToJsonSchema } = require("zod-to-json-schema")
-const puppeteer = require("puppeteer")
 
 const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENAI_API_KEY
@@ -185,15 +184,28 @@ async function generateInterviewReport({ resume, selfDescription, jobDescription
 
 
 async function generatePdfFromHtml(htmlContent) {
-    const launchOptions = {
-        args: ["--no-sandbox", "--disable-setuid-sandbox", "--single-process", "--no-zygote"],
-        headless: true
+    let browser
+
+    if (process.env.NODE_ENV === "production") {
+        // Use @sparticuz/chromium on Render (cloud/Linux servers)
+        const chromium = require("@sparticuz/chromium")
+        const puppeteerCore = require("puppeteer-core")
+
+        browser = await puppeteerCore.launch({
+            args: chromium.args,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        })
+    } else {
+        // Use regular puppeteer locally
+        const puppeteer = require("puppeteer")
+        browser = await puppeteer.launch({
+            args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            headless: true
+        })
     }
-    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH
-    }
-    const browser = await puppeteer.launch(launchOptions)
-    const page = await browser.newPage();
+
+    const page = await browser.newPage()
     await page.setContent(htmlContent, { waitUntil: "networkidle0" })
 
     const pdfBuffer = await page.pdf({
